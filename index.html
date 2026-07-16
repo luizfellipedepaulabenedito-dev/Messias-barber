@@ -26,6 +26,88 @@
     --radius-sm: 10px;
   }
 
+/* ============================================================
+   FLOATING TOOLS — instrumentos de barbeiro flutuando pelo site
+   Cole este arquivo como <link rel="stylesheet" href="floating-tools.css">
+   dentro do <head>, DEPOIS do <style> principal do site
+   (ou copie o conteúdo pra dentro da tag <style> existente).
+   ============================================================ */
+
+/* Container fixo que cobre a tela inteira. Fica "grudado" na
+   janela (position:fixed) então os ícones flutuam por cima de
+   tudo enquanto o usuário navega/rola a página. */
+#floating-tools{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  pointer-events:none; /* nunca atrapalha cliques/scroll */
+  z-index:5;           /* acima do fundo, abaixo do header (header usa z-index:100) */
+}
+
+.floating-tool{
+  position:absolute;
+  top:110vh; /* começa abaixo da tela */
+  left:var(--x, 10vw);
+  width:var(--size, 40px);
+  height:var(--size, 40px);
+  color:var(--brass, #c9a227);
+  opacity:var(--op, .16);
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));
+  animation:
+    float-up var(--dur, 26s) linear var(--delay, 0s) infinite,
+    sway var(--sway-dur, 6s) ease-in-out var(--delay, 0s) infinite alternate;
+  will-change:transform;
+}
+
+.floating-tool svg{
+  width:100%;
+  height:100%;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.4;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* sobe a tela inteira girando lentamente */
+@keyframes float-up{
+  0%{
+    top:110vh;
+    transform:rotate(0deg);
+    opacity:0;
+  }
+  8%{ opacity:var(--op, .16); }
+  92%{ opacity:var(--op, .16); }
+  100%{
+    top:-15vh;
+    transform:rotate(var(--rot, 360deg));
+    opacity:0;
+  }
+}
+
+/* balanço lateral suave, independente da subida */
+@keyframes sway{
+  from{ margin-left:-18px; }
+  to{ margin-left:18px; }
+}
+
+/* Em telas pequenas, reduz quantidade visual (menos poluição) */
+@media (max-width:640px){
+  .floating-tool{ opacity:calc(var(--op, .16) * .7); }
+  .floating-tool:nth-child(3n){ display:none; } /* esconde 1/3 dos ícones */
+}
+
+/* Respeita quem prefere menos animação */
+@media (prefers-reduced-motion: reduce){
+  #floating-tools{ display:none; }
+}
+
+
+
+
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   @media (prefers-reduced-motion: reduce){
@@ -696,6 +778,86 @@
 
 <div class="toast" id="toast"></div>
 
+
+<!--
+  ============================================================
+  COMO INSTALAR — instrumentos de barbeiro flutuando
+  ============================================================
+  Este arquivo é só um GUIA. Ele mostra os 3 pontos exatos onde
+  você deve mexer no seu index_html.html. Não precisa rodar
+  este arquivo, é só referência.
+
+  Os 3 arquivos que você recebeu:
+    1. floating-tools.css   -> estilo/animação dos ícones
+    2. floating-tools.js    -> cria os ícones e sorteia posição/velocidade
+    3. este arquivo         -> onde colar cada coisa
+  ============================================================
+-->
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- PASSO 1 ============================================
+       Cole esta linha dentro do <head> do seu index_html.html,
+       depois da tag </style> que já existe lá.
+       (Se preferir não usar arquivo separado, pode simplesmente
+       copiar o CONTEÚDO do floating-tools.css pra dentro da
+       tag <style> existente do site — funciona igual.)
+  ======================================================== -->
+  <link rel="stylesheet" href="floating-tools.css">
+
+</head>
+<body>
+
+  <!-- Aqui entraria todo o conteúdo normal do seu site:
+       header, hero, seções de serviço, formulário de
+       agendamento etc. Não precisa mexer em nada disso. -->
+
+  <!-- PASSO 2 ============================================
+       Não precisa criar a div manualmente — o floating-tools.js
+       já cria sozinho um <div id="floating-tools"></div> e
+       coloca no final do <body> automaticamente.
+       Mas se você quiser controlar a posição dela no DOM,
+       pode colar isso onde quiser (ex: logo depois de <body>):
+  ======================================================== -->
+  <!-- <div id="floating-tools" aria-hidden="true"></div> -->
+
+  <!-- PASSO 3 ============================================
+       Cole esta linha JUSTO ANTES do </body>, depois do
+       <script> principal que já existe no seu index_html.html
+       (aquele que tem o WHATSAPP_NUMBER, SCRIPT_URL etc).
+  ======================================================== -->
+  <script src="floating-tools.js"></script>
+
+</body>
+</html>
+
+<!--
+  ============================================================
+  PERSONALIZAÇÃO RÁPIDA (dentro do floating-tools.js)
+  ============================================================
+  QUANTIDADE_ICONES  -> quantos ícones flutuam ao mesmo tempo (padrão 9)
+  DURACAO_MIN/MAX    -> velocidade de subida em segundos (menor = mais rápido)
+  TAMANHO_MIN/MAX    -> tamanho dos ícones em px
+  OPACIDADE_MIN/MAX  -> quão visível/discreto fica (0 a 1)
+
+  Ícones disponíveis: tesoura, navalha, pente, maquina, pincel, borrifador
+  (pra adicionar mais tipos, é só criar mais uma entrada dentro do
+  objeto ICONS no topo do floating-tools.js, com um SVG de viewBox "0 0 48 48")
+
+  ============================================================
+  SOBRE A COR
+  ============================================================
+  Os ícones usam var(--brass, #c9a227) automaticamente, que é a
+  cor dourada que seu site já usa (--brass no :root do CSS).
+  Se o floating-tools.css for carregado numa página SEM essa
+  variável definida, ele cai pro dourado #c9a227 como reserva,
+  então funciona mesmo sozinho.
+-->
+
+
 <script>
   const WHATSAPP_NUMBER = "5535997326090";
 
@@ -814,6 +976,104 @@
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${mensagem}`, '_blank');
     showToast('Pedido enviado! Confirme o horário exato no WhatsApp que abriu.');
   });
+
+/* ============================================================
+   FLOATING TOOLS — instrumentos de barbeiro flutuando pelo site
+   Cole este arquivo como <script src="floating-tools.js"></script>
+   logo ANTES do </body> (depois do container HTML e do resto
+   do script principal do site).
+
+   O que faz: cria vários ícones SVG (tesoura, navalha, pente,
+   máquina de corte, pincel, borrifador) dentro de
+   #floating-tools e sobe eles pela tela em posições, tamanhos,
+   velocidades e atrasos aleatórios, em loop infinito.
+
+   Tudo configurável nas constantes abaixo.
+   ============================================================ */
+
+(function () {
+  // ---------- CONFIGURAÇÃO (mexa aqui à vontade) ----------
+  const QUANTIDADE_ICONES = 9;       // quantos ícones flutuando ao mesmo tempo
+  const DURACAO_MIN = 18;            // segundos - subida mais rápida
+  const DURACAO_MAX = 34;            // segundos - subida mais lenta
+  const TAMANHO_MIN = 26;            // px
+  const TAMANHO_MAX = 54;            // px
+  const OPACIDADE_MIN = 0.10;
+  const OPACIDADE_MAX = 0.22;
+
+  // ---------- ÍCONES (SVG puro, stroke = currentColor) ----------
+  const ICONS = {
+    tesoura: `<svg viewBox="0 0 48 48"><circle cx="10" cy="12" r="5"/><circle cx="10" cy="36" r="5"/><line x1="14" y1="15" x2="42" y2="45"/><line x1="14" y1="33" x2="42" y2="3"/></svg>`,
+
+    navalha: `<svg viewBox="0 0 48 48"><path d="M6 24h22l12-10v20L28 24"/><path d="M28 24l12 10"/><line x1="6" y1="24" x2="6" y2="24"/><rect x="2" y="21" width="6" height="6" rx="1"/></svg>`,
+
+    pente: `<svg viewBox="0 0 48 48"><rect x="6" y="10" width="36" height="8" rx="2"/><line x1="10" y1="18" x2="10" y2="42"/><line x1="16" y1="18" x2="16" y2="38"/><line x1="22" y1="18" x2="22" y2="42"/><line x1="28" y1="18" x2="28" y2="38"/><line x1="34" y1="18" x2="34" y2="42"/><line x1="40" y1="18" x2="40" y2="38"/></svg>`,
+
+    maquina: `<svg viewBox="0 0 48 48"><rect x="14" y="6" width="20" height="26" rx="3"/><rect x="17" y="32" width="14" height="8" rx="1"/><line x1="20" y1="40" x2="20" y2="44"/><line x1="24" y1="40" x2="24" y2="45"/><line x1="28" y1="40" x2="28" y2="44"/><line x1="20" y1="12" x2="28" y2="12"/><line x1="20" y1="18" x2="28" y2="18"/></svg>`,
+
+    pincel: `<svg viewBox="0 0 48 48"><path d="M30 6c4 0 8 4 8 8 0 5-6 8-10 12L14 40 8 34 22 20c4-4 7-10 12-10z"/><line x1="14" y1="26" x2="22" y2="34"/></svg>`,
+
+    borrifador: `<svg viewBox="0 0 48 48"><rect x="14" y="16" width="14" height="26" rx="2"/><path d="M18 16V9a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v7"/><line x1="30" y1="10" x2="40" y2="6"/><line x1="30" y1="14" x2="41" y2="12"/><line x1="30" y1="18" x2="40" y2="18"/></svg>`
+  };
+
+  const nomesIcones = Object.keys(ICONS);
+
+  function aleatorio(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function criarContainer() {
+    let container = document.getElementById('floating-tools');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'floating-tools';
+      container.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(container);
+    }
+    return container;
+  }
+
+  function criarIcone(container, index) {
+    const nome = nomesIcones[index % nomesIcones.length];
+    const el = document.createElement('div');
+    el.className = 'floating-tool';
+    el.innerHTML = ICONS[nome];
+
+    const tamanho = aleatorio(TAMANHO_MIN, TAMANHO_MAX);
+    const opacidade = aleatorio(OPACIDADE_MIN, OPACIDADE_MAX);
+    const duracao = aleatorio(DURACAO_MIN, DURACAO_MAX);
+    const swayDuracao = aleatorio(4, 9);
+    const atraso = aleatorio(0, DURACAO_MAX); // espalha o início pra não nascerem juntos
+    const posX = aleatorio(2, 92); // vw
+    const rotacao = (Math.random() > 0.5 ? 1 : -1) * aleatorio(180, 540);
+
+    el.style.setProperty('--size', tamanho.toFixed(1) + 'px');
+    el.style.setProperty('--op', opacidade.toFixed(2));
+    el.style.setProperty('--dur', duracao.toFixed(1) + 's');
+    el.style.setProperty('--sway-dur', swayDuracao.toFixed(1) + 's');
+    el.style.setProperty('--delay', '-' + atraso.toFixed(1) + 's'); // negativo = já começa "em movimento"
+    el.style.setProperty('--x', posX.toFixed(1) + 'vw');
+    el.style.setProperty('--rot', rotacao.toFixed(0) + 'deg');
+
+    container.appendChild(el);
+  }
+
+  function iniciar() {
+    const container = criarContainer();
+    for (let i = 0; i < QUANTIDADE_ICONES; i++) {
+      criarIcone(container, i);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', iniciar);
+  } else {
+    iniciar();
+  }
+})();
+
+
+
 </script>
 
 </body>
