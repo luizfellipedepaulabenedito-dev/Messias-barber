@@ -703,6 +703,10 @@
 <script>
   const WHATSAPP_NUMBER = "5535997326090";
 
+  // Cole aqui a URL do webhook gerada no Make (módulo "Webhooks" > "Custom webhook")
+  // Exemplo: "https://hook.us2.make.com/vxg41700gl5f0en1xylmhrqsgy33o7qd"
+  const MAKE_WEBHOOK_URL = "https://hook.us2.make.com/vxg41700gl5f0en1xylmhrqsgy33o7qd";
+
   const services = [
     { name: "Corte Degradê", price: 35.00 },
     { name: "Corte Simples", price: 30.00 },
@@ -791,8 +795,25 @@
     setTimeout(() => toast.classList.remove('show'), 3600);
   }
 
+  // Envia os dados do agendamento para o webhook do Make (que joga na planilha do Google Sheets)
+  async function enviarParaMake(payload){
+    if(!MAKE_WEBHOOK_URL){
+      console.warn('MAKE_WEBHOOK_URL não configurada. Pulei o envio ao Make.');
+      return;
+    }
+    try{
+      await fetch(MAKE_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }catch(err){
+      console.error('Erro ao enviar dados para o Make:', err);
+    }
+  }
+
   const form = document.getElementById('bookingForm');
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nome = document.getElementById('nome').value.trim();
     const telefone = document.getElementById('telefone').value.trim();
@@ -807,6 +828,22 @@
 
     const s = services[servicoIdx];
     const dataFormatada = new Date(data + 'T00:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', weekday:'long' });
+
+    // Monta o payload que vai para o webhook do Make / Google Sheets
+    const payload = {
+      nome,
+      telefone,
+      servico: s.name,
+      preco: s.price,
+      data,
+      data_formatada: dataFormatada,
+      periodo,
+      origem: 'site-messias-barbershop',
+      criado_em: new Date().toISOString()
+    };
+
+    // Dispara para o Make (não bloqueia o WhatsApp caso falhe)
+    enviarParaMake(payload);
 
     const mensagem = `Olá, Messias! Quero pedir um horário:%0A%0A` +
       `Nome: ${nome}%0A` +
